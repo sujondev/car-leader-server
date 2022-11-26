@@ -24,6 +24,7 @@ async function run() {
     const carCategoryCollection = client.db('carLeader').collection('carCategory')
     const resellCarCollection = client.db('carLeader').collection('resellCar')
     const usersCollection = client.db('carLeader').collection('users')
+    const bookingCollection = client.db('carLeader').collection('booking')
     try {
         app.get('/categorey', async (req, res) => {
             const query = {}
@@ -40,6 +41,12 @@ async function run() {
         app.post('/users', async (req, res) => {
             const users = req.body;
             const result = await usersCollection.insertOne(users)
+            res.send(result)
+        })
+
+        app.post('/booking', async (req, res) => {
+            const booking = req.body;
+            const result = await bookingCollection.insertOne(booking)
             res.send(result)
         })
 
