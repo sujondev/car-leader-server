@@ -28,7 +28,18 @@ async function run() {
     const bookingCollection = client.db('carLeader').collection('booking')
 
     function verifyJWT(req, res, next) {
-
+        const authHeaders = req.headers.authorization;
+        if (!authHeaders) {
+            res.status(401).send('unauthorized access')
+        }
+        const token = authHeaders.split(' ')[1]
+        jwt.verify(token, process.env.ACCESS_TOKEN, (error, decoded) => {
+            if (error) {
+                res.status(403).send({ message: "forbidden access" })
+            }
+            req.decoded = decoded
+        })
+        next()
     }
 
     try {
@@ -50,15 +61,19 @@ async function run() {
             const user = await usersCollection.findOne(query)
             console.log(user);
             if (user) {
-                const token = jwt.sign({ email }, process.env.ACCESS_TOKEN)
+                const token = jwt.sign({ email }, process.env.ACCESS_TOKEN, { expiresIn: '1h' })
                 res.send({ accessToken: token })
             }
             res.status(401).send({ accessToken: '' })
 
         })
 
-        app.get('/booking', async (req, res) => {
+        app.get('/booking', verifyJWT, async (req, res) => {
             const email = req.query.email
+            const decodedEmail = req.decoded.email;
+            if (email !== decodedEmail) {
+                res.status(403).send({ message: "forbidden access" })
+            }
             const query = { email: email }
             const booking = await bookingCollection.find(query).toArray()
             res.send(booking)
