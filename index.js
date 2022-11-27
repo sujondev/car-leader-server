@@ -1,8 +1,8 @@
 const express = require('express');
 const app = express();
 const port = process.env.PORT || '5000';
-const jwt = require('jsonwebtoken');
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
+const jwt = require('jsonwebtoken');
 const cors = require('cors')
 require('dotenv').config()
 
@@ -26,6 +26,11 @@ async function run() {
     const resellCarCollection = client.db('carLeader').collection('resellCar')
     const usersCollection = client.db('carLeader').collection('users')
     const bookingCollection = client.db('carLeader').collection('booking')
+
+    function verifyJWT(req, res, next) {
+
+    }
+
     try {
         app.get('/categorey', async (req, res) => {
             const query = {}
@@ -34,18 +39,27 @@ async function run() {
         })
         app.get('/categorey/:id', async (req, res) => {
             const categoreyId = req.params.id;
-            const query = { categoreyId }
+            const query = { categoreyId: categoreyId }
             const categoreyCar = await resellCarCollection.find(query).toArray()
             res.send(categoreyCar)
         })
 
         app.get('/jwt', async (req, res) => {
+            const email = req.query.email;
+            const query = { email: email };
+            const user = await usersCollection.findOne(query)
+            console.log(user);
+            if (user) {
+                const token = jwt.sign({ email }, process.env.ACCESS_TOKEN)
+                res.send({ accessToken: token })
+            }
+            res.status(401).send({ accessToken: '' })
 
         })
 
         app.get('/booking', async (req, res) => {
             const email = req.query.email
-            const query = { email }
+            const query = { email: email }
             const booking = await bookingCollection.find(query).toArray()
             res.send(booking)
         })
