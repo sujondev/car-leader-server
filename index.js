@@ -33,7 +33,7 @@ async function run() {
     function verifyJWT(req, res, next) {
         const authHeaders = req.headers.authorization;
         if (!authHeaders) {
-            res.status(401).send('unauthorized access')
+            return res.status(401).send('unauthorized access')
         }
         const token = authHeaders.split(' ')[1]
         jwt.verify(token, process.env.ACCESS_TOKEN, function (err, decoded) {
@@ -123,11 +123,26 @@ async function run() {
             res.send(myproduct)
         })
 
-        app.get('/user/admin/:email', async (req, res) => {
+        app.get('/user/admin/:email', verifyJWT, async (req, res) => {
             const email = req.params.email;
             const query = { email: email }
             const user = await usersCollection.findOne(query)
             res.send({ isAdmin: user?.role === 'admin' })
+        })
+
+        app.get('/user/seller/:email', async (req, res) => {
+            const email = req.params.email;
+            const query = { email: email }
+            const user = await usersCollection.findOne(query)
+            res.send({ isSeller: user?.role === 'Seller' })
+        })
+
+        app.get('/allseller', async (req, res) => {
+            const role = req.query.role;
+            const query = { role: role }
+            console.log(query);
+            const allSellers = await usersCollection.find(query).toArray()
+            res.send(allSellers)
         })
 
 
@@ -154,6 +169,13 @@ async function run() {
             const query = { _id: ObjectId(id) }
             const result = await resellCarCollection.deleteOne(query)
             res.send(result)
+        })
+
+        app.delete('/seller/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) }
+            const user = await usersCollection.deleteOne(query)
+            res.send(user)
         })
 
     }
