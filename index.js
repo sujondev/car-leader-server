@@ -21,6 +21,9 @@ app.get('/', (req, res) => {
 const uri = `mongodb+srv://${process.env.DATABASE_USER}:${process.env.DB_PASSWORD}@cluster0.2sdc0k9.mongodb.net/?retryWrites=true&w=majority`;
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
 
+
+
+
 async function run() {
     const carCategoryCollection = client.db('carLeader').collection('carCategory')
     const resellCarCollection = client.db('carLeader').collection('resellCar')
@@ -44,6 +47,22 @@ async function run() {
     }
 
     try {
+        // verify admin
+        const verifyAdmin = (req, res, next) => {
+            const decodedEmail = req.decoded.email;
+            const query = { email: decodedEmail }
+            const user = usersCollection.find(query)
+            if (user.role !== 'admin') {
+                return res.status(403).send({ message: 'fobidden access' })
+            }
+            next()
+        }
+        // verify admin
+
+
+
+
+
         app.get('/categorey', async (req, res) => {
             const query = {}
             const category = await carCategoryCollection.find(query).toArray()
