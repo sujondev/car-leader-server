@@ -136,6 +136,12 @@ async function run() {
             const user = await usersCollection.findOne(query)
             res.send({ isSeller: user?.role === 'Seller' })
         })
+        app.get('/user/buyer/:email', async (req, res) => {
+            const email = req.params.email;
+            const query = { email: email }
+            const user = await usersCollection.findOne(query)
+            res.send({ isBuyer: user?.role === 'Buyer' })
+        })
 
         app.get('/allseller', async (req, res) => {
             const role = req.query.role;
@@ -143,6 +149,13 @@ async function run() {
             console.log(query);
             const allSellers = await usersCollection.find(query).toArray()
             res.send(allSellers)
+        })
+        app.get('/allbuyer', async (req, res) => {
+            const role = req.query.role;
+            const query = { role: role }
+            console.log(query);
+            const allBuyer = await usersCollection.find(query).toArray()
+            res.send(allBuyer)
         })
 
 
@@ -172,6 +185,12 @@ async function run() {
         })
 
         app.delete('/seller/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) }
+            const user = await usersCollection.deleteOne(query)
+            res.send(user)
+        })
+        app.delete('/buyer/:id', async (req, res) => {
             const id = req.params.id;
             const query = { _id: ObjectId(id) }
             const user = await usersCollection.deleteOne(query)
