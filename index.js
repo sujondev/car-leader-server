@@ -33,20 +33,20 @@ async function run() {
             res.status(401).send('unauthorized access')
         }
         const token = authHeaders.split(' ')[1]
-        jwt.verify(token, process.env.ACCESS_TOKEN, (error, decoded) => {
-            if (error) {
-                return res.status(403).send({ message: "forbidden access" })
+        jwt.verify(token, process.env.ACCESS_TOKEN, function (err, decoded) {
+            if (err) {
+                return res.status(403).send({ message: 'forbidden access' })
             }
-            req.decoded = decoded
+            req.decoded = decoded;
+            next();
         })
-        next()
+
     }
 
     try {
         app.get('/categorey', async (req, res) => {
             const query = {}
             const category = await carCategoryCollection.find(query).toArray()
-            console.log(query);
             res.send(category)
         })
         app.get('/categorey/:id', async (req, res) => {
@@ -79,6 +79,13 @@ async function run() {
             res.send(booking)
         })
 
+        app.get('/myproduct', async (req, res) => {
+            const email = req.query.email;
+            const query = { email: email };
+            const myproduct = await resellCarCollection.find(query).toArray();
+            res.send(myproduct)
+        })
+
 
         app.post('/users', async (req, res) => {
             const users = req.body;
@@ -96,6 +103,10 @@ async function run() {
             const product = req.body;
             const result = await resellCarCollection.insertOne(product)
             res.send(result)
+        })
+
+        app.delete('myproduct', async (req, res) => {
+
         })
 
     }
