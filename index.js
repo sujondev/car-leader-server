@@ -59,6 +59,20 @@ async function run() {
         }
         // verify admin
 
+        // seller verify 
+
+        const verifySeller = (req, res, next) => {
+            const decodedEmail = req.decoded.email;
+            const query = { email: decodedEmail }
+            const user = usersCollection.find(query)
+            if (user.role !== 'Seller') {
+                return res.status(403).send({ message: 'fobidden access' })
+            }
+            next()
+        }
+
+        // seller verify 
+
 
 
 
@@ -107,6 +121,13 @@ async function run() {
             const query = { email: email };
             const myproduct = await resellCarCollection.find(query).toArray();
             res.send(myproduct)
+        })
+
+        app.get('/user/admin/:email', async (req, res) => {
+            const email = req.params.email;
+            const query = { email: email }
+            const user = await usersCollection.findOne(query)
+            res.send({ isAdmin: user?.role === 'admin' })
         })
 
 
