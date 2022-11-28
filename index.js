@@ -35,7 +35,7 @@ async function run() {
         const token = authHeaders.split(' ')[1]
         jwt.verify(token, process.env.ACCESS_TOKEN, (error, decoded) => {
             if (error) {
-                res.status(403).send({ message: "forbidden access" })
+                return res.status(403).send({ message: "forbidden access" })
             }
             req.decoded = decoded
         })
@@ -46,6 +46,7 @@ async function run() {
         app.get('/categorey', async (req, res) => {
             const query = {}
             const category = await carCategoryCollection.find(query).toArray()
+            console.log(query);
             res.send(category)
         })
         app.get('/categorey/:id', async (req, res) => {
@@ -59,10 +60,9 @@ async function run() {
             const email = req.query.email;
             const query = { email: email };
             const user = await usersCollection.findOne(query)
-            console.log(user);
             if (user) {
                 const token = jwt.sign({ email }, process.env.ACCESS_TOKEN, { expiresIn: '1h' })
-                res.send({ accessToken: token })
+                return res.send({ accessToken: token })
             }
             res.status(401).send({ accessToken: '' })
 
@@ -72,9 +72,9 @@ async function run() {
             const email = req.query.email
             const decodedEmail = req.decoded.email;
             if (email !== decodedEmail) {
-                res.status(403).send({ message: "forbidden access" })
+                return res.status(403).send({ message: "forbidden access" })
             }
-            const query = { email: email }
+            const query = { email }
             const booking = await bookingCollection.find(query).toArray()
             res.send(booking)
         })
@@ -89,6 +89,12 @@ async function run() {
         app.post('/booking', async (req, res) => {
             const booking = req.body;
             const result = await bookingCollection.insertOne(booking)
+            res.send(result)
+        })
+
+        app.post('/product', async (req, res) => {
+            const product = req.body;
+            const result = await resellCarCollection.insertOne(product)
             res.send(result)
         })
 
