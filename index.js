@@ -79,8 +79,12 @@ async function run() {
             res.send(booking)
         })
 
-        app.get('/myproduct', async (req, res) => {
+        app.get('/myproduct', verifyJWT, async (req, res) => {
             const email = req.query.email;
+            const decodedEmail = req.decoded.email;
+            if (email !== decodedEmail) {
+                return res.status(403).send({ message: "forbidden access" })
+            }
             const query = { email: email };
             const myproduct = await resellCarCollection.find(query).toArray();
             res.send(myproduct)
@@ -105,8 +109,11 @@ async function run() {
             res.send(result)
         })
 
-        app.delete('myproduct', async (req, res) => {
-
+        app.delete('/myproduct/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) }
+            const result = await resellCarCollection.deleteOne(query)
+            res.send(result)
         })
 
     }
