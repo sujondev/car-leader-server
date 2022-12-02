@@ -143,13 +143,13 @@ async function run() {
             res.send({ isBuyer: user?.role === 'Buyer' })
         })
 
-        app.get('/allseller', async (req, res) => {
+        app.get('/allseller', verifyJWT, verifyAdmin, async (req, res) => {
             const role = req.query.role;
             const query = { role: role }
             const allSellers = await usersCollection.find(query).toArray()
             res.send(allSellers)
         })
-        app.get('/allbuyer', async (req, res) => {
+        app.get('/allbuyer', verifyJWT, verifyAdmin, async (req, res) => {
             const role = req.query.role;
             const query = { role: role }
             const allBuyer = await usersCollection.find(query).toArray()
@@ -175,6 +175,17 @@ async function run() {
             res.send(result)
         })
 
+
+        app.put('/verfiyseller', verifyJWT, verifyAdmin, async (req, res) => {
+            const email = req.query.email;
+            const filter = { email: email }
+            const updateDoc = { $set: { isverify: "verfiy" } }
+            const option = { upsert: true }
+            const product = await resellCarCollection.updateOne(filter, updateDoc, option)
+            const user = await usersCollection.updateOne(filter, updateDoc, option)
+            res.send(user)
+        })
+
         app.delete('/myproduct/:id', async (req, res) => {
             const id = req.params.id;
             const query = { _id: ObjectId(id) }
@@ -182,13 +193,13 @@ async function run() {
             res.send(result)
         })
 
-        app.delete('/seller/:id', async (req, res) => {
+        app.delete('/seller/:id', verifyJWT, verifyAdmin, async (req, res) => {
             const id = req.params.id;
             const query = { _id: ObjectId(id) }
             const user = await usersCollection.deleteOne(query)
             res.send(user)
         })
-        app.delete('/buyer/:id', async (req, res) => {
+        app.delete('/buyer/:id', verifyJWT, verifyAdmin, async (req, res) => {
             const id = req.params.id;
             const query = { _id: ObjectId(id) }
             const user = await usersCollection.deleteOne(query)
