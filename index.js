@@ -48,10 +48,10 @@ async function run() {
 
     try {
         // verify admin
-        const verifyAdmin = (req, res, next) => {
+        const verifyAdmin = async (req, res, next) => {
             const decodedEmail = req.decoded.email;
             const query = { email: decodedEmail }
-            const user = usersCollection.find(query)
+            const user = await usersCollection.findOne(query)
             if (user.role !== 'admin') {
                 return res.status(403).send({ message: 'fobidden access' })
             }
@@ -61,10 +61,10 @@ async function run() {
 
         // seller verify 
 
-        const verifySeller = (req, res, next) => {
+        const verifySeller = async (req, res, next) => {
             const decodedEmail = req.decoded.email;
             const query = { email: decodedEmail }
-            const user = usersCollection.find(query)
+            const user = await usersCollection.find(query)
             if (user.role !== 'Seller') {
                 return res.status(403).send({ message: 'fobidden access' })
             }
@@ -186,7 +186,7 @@ async function run() {
             res.send(user)
         })
 
-        app.delete('/myproduct/:id', async (req, res) => {
+        app.delete('/myproduct/:id', verifyJWT, async (req, res) => {
             const id = req.params.id;
             const query = { _id: ObjectId(id) }
             const result = await resellCarCollection.deleteOne(query)
