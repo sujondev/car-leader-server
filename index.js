@@ -3,6 +3,7 @@ const app = express();
 const port = process.env.PORT || '5000';
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const jwt = require('jsonwebtoken');
+const helmet = require('helmet')
 const cors = require('cors')
 require('dotenv').config()
 
@@ -10,6 +11,8 @@ require('dotenv').config()
 // middleware
 app.use(cors())
 app.use(express.json())
+app.use(helmet.noCache())
+
 
 
 app.get('/', (req, res) => {
@@ -31,18 +34,18 @@ async function run() {
     const bookingCollection = client.db('carLeader').collection('booking')
 
     function verifyJWT(req, res, next) {
-        const authHeaders = req.headers.authorization;
-        if (!authHeaders) {
-            return res.status(401).send('unauthorized access')
-        }
-        const token = authHeaders.split(' ')[1]
-        jwt.verify(token, process.env.ACCESS_TOKEN, function (err, decoded) {
-            if (err) {
-                return res.status(403).send({ message: 'forbidden access' })
-            }
-            req.decoded = decoded;
-            next();
-        })
+        // const authHeaders = req.headers.authorization;
+        // if (!authHeaders) {
+        //     return res.status(401).send('unauthorized access')
+        // }
+        // const token = authHeaders.split(' ')[1]
+        // jwt.verify(token, process.env.ACCESS_TOKEN, function (err, decoded) {
+        //     if (err) {
+        //         return res.status(403).send({ message: 'forbidden access' })
+        //     }
+        //     req.decoded = decoded;
+        //     next();
+        // })
 
     }
 
@@ -149,11 +152,26 @@ async function run() {
             const allSellers = await usersCollection.find(query).toArray()
             res.send(allSellers)
         })
+
+        app.get('/booking/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) };
+            const booking = await bookingCollection.findOne(query)
+            res.send(booking)
+        })
+
         app.get('/allbuyer', verifyJWT, verifyAdmin, async (req, res) => {
             const role = req.query.role;
             const query = { role: role }
             const allBuyer = await usersCollection.find(query).toArray()
             res.send(allBuyer)
+        })
+
+        app.get('/adProduct', async (req, res) => {
+            const email = req.query.email;
+            const query = { email: email }
+            const adProduct = await resellCarCollection.find(query).toArray()
+            res.send(adProduct)
         })
 
 
