@@ -6,12 +6,13 @@ const jwt = require('jsonwebtoken');
 const helmet = require('helmet')
 const cors = require('cors')
 require('dotenv').config()
+const stripe = require("stripe")(process.env.STRIPE_SECRET);
 
 
 // middleware
 app.use(cors())
 app.use(express.json())
-app.use(helmet.noCache())
+app.use(helmet())
 
 
 
@@ -34,18 +35,18 @@ async function run() {
     const bookingCollection = client.db('carLeader').collection('booking')
 
     function verifyJWT(req, res, next) {
-        // const authHeaders = req.headers.authorization;
-        // if (!authHeaders) {
-        //     return res.status(401).send('unauthorized access')
-        // }
-        // const token = authHeaders.split(' ')[1]
-        // jwt.verify(token, process.env.ACCESS_TOKEN, function (err, decoded) {
-        //     if (err) {
-        //         return res.status(403).send({ message: 'forbidden access' })
-        //     }
-        //     req.decoded = decoded;
-        //     next();
-        // })
+        const authHeaders = req.headers.authorization;
+        if (!authHeaders) {
+            return res.status(401).send('unauthorized access')
+        }
+        const token = authHeaders.split(' ')[1]
+        jwt.verify(token, process.env.ACCESS_TOKEN, function (err, decoded) {
+            if (err) {
+                return res.status(403).send({ message: 'forbidden access' })
+            }
+            req.decoded = decoded;
+            next();
+        })
 
     }
 
@@ -209,6 +210,20 @@ async function run() {
             const query = { _id: ObjectId(id) }
             const result = await resellCarCollection.deleteOne(query)
             res.send(result)
+        })
+
+        app.post('/create-payment-intent', verifyJWT, async (req, res) => {
+            const order = req.body;
+            const price = order.resellPrice;
+            const amount = price * 100;
+            console.log(amount);
+            const paymentIntent = await stripe.paymentIntents.create({
+                currency: "usd",
+                amount: amount,
+            })
+            res.send({
+                clientSecret: paymentIntent.client_secret,
+            });
         })
 
         app.delete('/seller/:id', verifyJWT, verifyAdmin, async (req, res) => {
